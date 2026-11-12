@@ -1,0 +1,47 @@
+name: Stock Monitor
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # 每 10 分钟一次 (GitHub 可能会延迟几分钟)
+  workflow_dispatch:
+    inputs:
+      test_email:
+        description: "只发送测试邮件 (不检测网页)"
+        type: boolean
+        default: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Run check
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          MAIL_TO: ghhchina714@gmail.com
+        run: |
+          if [ "${{ inputs.test_email }}" = "true" ]; then
+            python check_stock.py --test-email
+          else
+            python check_stock.py
+          fi
+
+      - name: Upload screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot
+          path: screenshot.png
+          if-no-files-found: ignore
