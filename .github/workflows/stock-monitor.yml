@@ -2,7 +2,7 @@ name: Stock Monitor
 
 on:
   schedule:
-    - cron: "*/10 * * * *"   # 每 10 分钟一次 (GitHub 可能会延迟几分钟)
+    - cron: "7,17,27,37,47,57 * * * *"   # 约每 10 分钟一次 (避开整点高峰; GitHub 仍可能延迟)
   workflow_dispatch:
     inputs:
       test_email:
@@ -31,6 +31,7 @@ jobs:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           MAIL_TO: ghhchina714@gmail.com
+          TIMEZONE: America/New_York   # 日志/邮件显示的时区 (美东)
         run: |
           if [ "${{ inputs.test_email }}" = "true" ]; then
             python check_stock.py --test-email
